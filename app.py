@@ -41,9 +41,14 @@ def get_info():
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
-        # Switch to "Smart TV" mode (often the hardest for YouTube to block)
-        'extractor_args': {'youtube': {'player_client': ['tv', 'web_embedded']}},
-        'user_agent': 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 5.0) AppleWebkit/537.36 (KHTML, like Gecko) SamsungBrowser/2.2 Chrome/63.0.3239.111 TV Safari/537.36'
+        # The absolute "Last Ditch" configuration to bypass data-center blocks
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios'],
+                'player_skip': ['webpage', 'configs']
+            }
+        },
+        'user_agent': 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)'
     }
     if os.path.exists(cookie_path):
         ydl_opts['cookiefile'] = cookie_path
@@ -115,9 +120,14 @@ def download_video():
         'quiet': True,
         'progress_hooks': [my_hook],
         'noprogress': False,
-        # Switch to "Smart TV" mode for downloads
-        'extractor_args': {'youtube': {'player_client': ['tv', 'web_embedded']}},
-        'user_agent': 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 5.0) AppleWebkit/537.36 (KHTML, like Gecko) SamsungBrowser/2.2 Chrome/63.0.3239.111 TV Safari/537.36'
+        # The absolute "Last Ditch" configuration for downloads
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios'],
+                'player_skip': ['webpage', 'configs']
+            }
+        },
+        'user_agent': 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)'
     }
 
     if os.path.exists(cookie_path):
