@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Video Downloader & Search</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        body { background-color: #f8f9fa; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; transition: background 0.3s; }
+        body.dark-mode { background-color: #1a1a1a; color: #fff; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); width: 100%; max-width: 850px; padding: 40px; transition: background 0.3s; }
+        .dark-mode .card { background-color: #2d2d2d; color: #fff; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        .btn-primary { background: var(--primary-gradient); border: none; padding: 12px; border-radius: 10px; font-weight: bold; }
+        .video-card { border: 1px solid #eee; border-radius: 15px; padding: 20px; margin-bottom: 25px; background: #fff; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .dark-mode .video-card { background: #3d3d3d; border-color: #444; }
+        .thumbnail-container { border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+        .format-item { background: #f9f9f9; border: 1px solid #eee; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .dark-mode .format-item { background: #4d4d4d; border-color: #555; }
+        .loading-spinner { display: none; margin: 25px 0; }
+        .mode-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; font-size: 1.8rem; z-index: 100; }
+        .help-toggle { position: absolute; top: 25px; left: 20px; cursor: pointer; font-size: 1.2rem; color: #888; }
+        textarea.form-control { resize: none; border-radius: 15px; border: 2px solid #eee; padding: 15px; font-size: 0.95rem; }
+        .progress { height: 35px; border-radius: 12px; display: none; margin-top: 15px; border: 1px solid #ddd; }
+        .progress-bar { font-weight: bold; font-size: 1rem; line-height: 35px; }
+        #progressStatus { font-size: 1.3rem; color: #764ba2; font-weight: 800; letter-spacing: -0.5px; }
+    </style>
+</head>
+<body class="light-mode">
+    <div class="help-toggle" data-bs-toggle="modal" data-bs-target="#helpModal">❓ Tips</div>
+    <div class="mode-toggle" onclick="toggleDarkMode()">🌓</div>
+
+    <div class="card bg-white position-relative shadow-lg">
+        <div class="text-center mb-4">
+            <h1 class="fw-bold text-dark dark-mode-text mb-1" style="letter-spacing: -1px;">VideoHub Pro</h1>
+            <p class="text-muted">Simple & High-Speed Downloader</p>
+        </div>
+
+        <div class="mb-4 position-relative">
+            <label for="videoUrls" class="form-label text-muted small fw-bold text-uppercase ls-1">URL or Search:</label>
+            <textarea id="videoUrls" class="form-control" rows="3" placeholder="Paste link or search keywords..."></textarea>
+        </div>
+        <div class="d-grid">
+            <button class="btn btn-primary fw-bold text-uppercase" type="button" id="btnGetInfo" onclick="getVideoInfo()">Analyze Video</button>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="text-center" style="display:none; margin-top: 25px; padding: 25px; background: #fbfbfb; border-radius: 15px; border: 1px solid #eee;">
+            <p id="progressStatus" class="mb-3">Starting Download...</p>
+            <div class="progress shadow-sm">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%">0%</div>
+            </div>
+            <p class="text-muted small mt-3 fw-bold">⚠️ PLEASE WAIT FOR THE FILE TO SAVE</p>
+        </div>
+
+        <div class="text-center loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 text-muted fw-bold">Connecting...</p>
+        </div>
+
+        <div id="resultsContainer" style="display:none; margin-top:30px;">
+            <div id="videoResults"></div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="fw-bold">How it Works</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body small">
+                    <p>1. <strong>Paste a Link</strong> or search YouTube directly.</p>
+                    <p>2. Choose <strong>1080p MP4</strong> or <strong>MP3</strong> quality.</p>
+                    <p>3. The server downloads and saves the file for you automatically.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('darkMode') === 'enabled') document.body.classList.add('dark-mode');
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? 'enabled' : 'disabled');
+        }
+
+        async function getVideoInfo() {
+            const rawText = document.getElementById('videoUrls').value.trim();
+            if (!rawText) return alert("Please enter a link!");
+            const urls = rawText.split('\n').map(u => u.trim()).filter(u => u !== '');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const btnGetInfo = document.getElementById('btnGetInfo');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const videoResults = document.getElementById('videoResults');
+
+            loadingSpinner.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            btnGetInfo.disabled = true;
+            videoResults.innerHTML = '';
+
+            try {
+                const response = await fetch('/get_info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ urls: urls }) });
+                const data = await response.json();
+                data.results.forEach(res => {
+                    const videoCard = document.createElement('div');
+                    videoCard.className = 'video-card shadow-sm';
+                    if (res.error) {
+                        videoCard.innerHTML = `<div class="alert alert-danger py-2 small">${res.error}</div>`;
+                    } else {
+                        let formatsHtml = '';
+                        res.formats.forEach(f => {
+                            formatsHtml += `<div class="format-item shadow-sm"><div class="text-truncate small fw-bold">${f.resolution} (${f.ext})</div><a class="btn btn-outline-success btn-sm fw-bold" href="${f.url}" target="_blank" style="font-size:0.6rem">Get Link</a></div>`;
+                        });
+                        videoCard.innerHTML = `
+                            <div class="row g-3">
+                                <div class="col-md-4"><div class="thumbnail-container"><img src="${res.thumbnail}" class="w-100"></div><div class="fw-bold small text-truncate mt-1">${res.title}</div></div>
+                                <div class="col-md-8">
+                                    <div class="d-grid gap-2 mb-3">
+                                        <button class="btn btn-primary btn-sm fw-bold shadow-sm" onclick="startDownload('${res.url_original}', 'video')">🚀 DOWNLOAD 1080p MP4</button>
+                                        <div class="row g-2">
+                                            <div class="col-6"><button class="btn btn-success btn-sm fw-bold w-100" onclick="startDownload('${res.url_original}', 'mp3_320')">🎵 BEST MP3</button></div>
+                                            <div class="col-6"><button class="btn btn-outline-success btn-sm fw-bold w-100" onclick="startDownload('${res.url_original}', 'mp3_192')">🎵 192k MP3</button></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted small mb-1 fw-bold text-uppercase" style="font-size: 0.6rem;">Instant Links:</div>
+                                    <div style="max-height: 150px; overflow-y: auto;">${formatsHtml}</div>
+                                </div>
+                            </div>`;
+                    }
+                    videoResults.appendChild(videoCard);
+                });
+                resultsContainer.style.display = 'block';
+            } catch (err) { alert("Error: " + err.message); }
+            finally { loadingSpinner.style.display = 'none'; btnGetInfo.disabled = false; }
+        }
+
+        async function startDownload(url, mode) {
+            const downloadId = 'id-' + Math.random().toString(36).substr(2, 9);
+            const progressSection = document.getElementById('progressSection');
+            const progressStatus = document.getElementById('progressStatus');
+            const progressBar = document.getElementById('progressBar');
+            const progressParent = document.querySelector('.progress');
+
+            progressSection.style.display = 'block';
+            progressParent.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.innerHTML = '0%';
+            progressStatus.innerHTML = "Initializing...";
+
+            // Start Progress Listener
+            const eventSource = new EventSource(`/progress/${downloadId}`);
+            eventSource.onmessage = (event) => {
+                const msg = event.data;
+                progressStatus.innerHTML = msg;
+
+                if (msg.includes('Downloading')) {
+                    // Extract only the percentage number
+                    const match = msg.match(/(\d+\.?\d*)/);
+                    if (match) {
+                        const pct = parseFloat(match[0]);
+                        progressBar.style.width = pct + '%';
+                        progressBar.innerHTML = Math.round(pct) + '%';
+                    }
+                } else if (msg.includes('Converting')) {
+                    progressBar.style.width = '100%';
+                    progressBar.innerHTML = 'Converting...';
+                    progressBar.classList.add('bg-info');
+                }
+
+                if (msg.includes("Finished") || msg.includes("Error")) {
+                    eventSource.close();
+                    if(msg.includes("Finished")) {
+                        progressBar.classList.remove('bg-info');
+                        progressBar.classList.add('bg-success');
+                        progressBar.innerHTML = 'Ready!';
+                        setTimeout(() => { progressSection.style.display = 'none'; }, 3000);
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch('/download', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, mode, download_id: downloadId }) });
+                const data = await response.json();
+                if (data.success) window.location.href = data.download_url;
+                else { alert("Error: " + data.error); eventSource.close(); progressSection.style.display = 'none'; }
+            } catch (err) { alert("Download failed: " + err.message); eventSource.close(); progressSection.style.display = 'none'; }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
