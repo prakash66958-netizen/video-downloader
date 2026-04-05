@@ -102,7 +102,9 @@ def download_video():
             progress_data[download_id] = "Converting & Saving... almost ready!"
 
     output_template = os.path.join(DOWNLOAD_FOLDER, f'%(title)s_{int(time.time())}.%(ext)s')
-    ydl_opts = {'outtmpl': output_template, 'quiet': True, 'ffmpeg_location': FFMPEG_PATH, 'progress_hooks': [my_hook], 'noprogress': False}
+    ydl_opts = {'outtmpl': output_template, 'quiet': True, 'progress_hooks': [my_hook], 'noprogress': False}
+    if FFMPEG_PATH:
+        ydl_opts['ffmpeg_location'] = FFMPEG_PATH
 
     if mode.startswith('mp3'):
         bitrate = mode.split('_')[1] if '_' in mode else '192'
