@@ -150,8 +150,15 @@ def download_video():
 def get_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Pass through HTTP errors
+    if isinstance(e, Exception):
+        return jsonify({'error': f"Global Server Error: {str(e)}"}), 500
+    return e
+
 if __name__ == '__main__':
-    # Default port for Hugging Face is 7860
-    port = int(os.environ.get('PORT', 7860))
+    # Force port 10000 for Render, fallback to 7860 for HF
+    port = int(os.environ.get('PORT', 10000))
     # MUST use host='0.0.0.0' for deployment
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
