@@ -41,7 +41,9 @@ def get_info():
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        # Force yt-dlp to pretend to be an Android app (often bypasses bot checks)
+        'extractor_args': {'youtube': {'player_client': ['android', 'ios']}},
+        'user_agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
     }
     if os.path.exists(cookie_path):
         ydl_opts['cookiefile'] = cookie_path
@@ -108,7 +110,15 @@ def download_video():
 
     output_template = os.path.join(DOWNLOAD_FOLDER, f'%(title)s_{int(time.time())}.%(ext)s')
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
-    ydl_opts = {'outtmpl': output_template, 'quiet': True, 'progress_hooks': [my_hook], 'noprogress': False}
+    ydl_opts = {
+        'outtmpl': output_template,
+        'quiet': True,
+        'progress_hooks': [my_hook],
+        'noprogress': False,
+        # Force mobile client for bypass
+        'extractor_args': {'youtube': {'player_client': ['android', 'ios']}},
+        'user_agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
+    }
 
     if os.path.exists(cookie_path):
         ydl_opts['cookiefile'] = cookie_path
