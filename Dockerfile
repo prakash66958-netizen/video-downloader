@@ -1,5 +1,5 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use a modern Python runtime (3.11 is required by newer yt-dlp)
+FROM python:3.11-slim
 
 # Install system dependencies (including ffmpeg and build tools for source install)
 RUN apt-get update && apt-get install -y \
