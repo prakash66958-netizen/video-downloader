@@ -68,7 +68,8 @@ def get_info():
                             seen_labels.add(label)
                     results.append({'url_original': entry.get('webpage_url') or url, 'title': entry.get('title'), 'thumbnail': entry.get('thumbnail'), 'uploader': entry.get('uploader'), 'formats': formats})
         except Exception as e:
-            results.append({'url_original': url, 'error': str(e)})
+            # Always return JSON even on error
+            return jsonify({'results': [{'url_original': url, 'error': f"Server Error: {str(e)}"}]})
     return jsonify({'results': results})
 
 @app.route('/progress/<download_id>')
