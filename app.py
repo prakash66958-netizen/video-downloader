@@ -35,11 +35,16 @@ def get_info():
         return jsonify({'error': 'No URLs provided'}), 400
 
     results = []
+    # Use cookies if available
+    cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
+
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     }
+    if os.path.exists(cookie_path):
+        ydl_opts['cookiefile'] = cookie_path
 
     for url in urls:
         if not url.strip(): continue
@@ -102,7 +107,12 @@ def download_video():
             progress_data[download_id] = "Converting & Saving... almost ready!"
 
     output_template = os.path.join(DOWNLOAD_FOLDER, f'%(title)s_{int(time.time())}.%(ext)s')
+    cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     ydl_opts = {'outtmpl': output_template, 'quiet': True, 'progress_hooks': [my_hook], 'noprogress': False}
+
+    if os.path.exists(cookie_path):
+        ydl_opts['cookiefile'] = cookie_path
+
     if FFMPEG_PATH:
         ydl_opts['ffmpeg_location'] = FFMPEG_PATH
 
