@@ -35,6 +35,21 @@ def get_info():
         return jsonify({'error': 'No URLs provided'}), 400
 
     results = []
+
+    # Define ydl_opts FIRST
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'format': 'best',
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'ios', 'web_creator'],
+                'player_skip': ['webpage', 'configs']
+            }
+        },
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+
     # Check for cookies in local folder and Render's secret folder
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     render_secret_path = '/etc/secrets/cookies.txt'
@@ -106,6 +121,22 @@ def download_video():
             progress_data[download_id] = "Converting & Saving... almost ready!"
 
     output_template = os.path.join(DOWNLOAD_FOLDER, f'%(title)s_{int(time.time())}.%(ext)s')
+
+    # Define ydl_opts FIRST
+    ydl_opts = {
+        'outtmpl': output_template,
+        'quiet': True,
+        'progress_hooks': [my_hook],
+        'noprogress': False,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'ios', 'web_creator'],
+                'player_skip': ['webpage', 'configs']
+            }
+        },
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+
     # Check for cookies in local folder and Render's secret folder
     cookie_path = os.path.join(os.getcwd(), 'cookies.txt')
     render_secret_path = '/etc/secrets/cookies.txt'
