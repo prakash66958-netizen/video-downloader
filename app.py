@@ -41,9 +41,9 @@ def get_info():
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
-        # Force yt-dlp to pretend to be an Android app (often bypasses bot checks)
-        'extractor_args': {'youtube': {'player_client': ['android', 'ios']}},
-        'user_agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
+        # Switch to "Smart TV" mode (often the hardest for YouTube to block)
+        'extractor_args': {'youtube': {'player_client': ['tv', 'web_embedded']}},
+        'user_agent': 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 5.0) AppleWebkit/537.36 (KHTML, like Gecko) SamsungBrowser/2.2 Chrome/63.0.3239.111 TV Safari/537.36'
     }
     if os.path.exists(cookie_path):
         ydl_opts['cookiefile'] = cookie_path
@@ -115,9 +115,9 @@ def download_video():
         'quiet': True,
         'progress_hooks': [my_hook],
         'noprogress': False,
-        # Force mobile client for bypass
-        'extractor_args': {'youtube': {'player_client': ['android', 'ios']}},
-        'user_agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36'
+        # Switch to "Smart TV" mode for downloads
+        'extractor_args': {'youtube': {'player_client': ['tv', 'web_embedded']}},
+        'user_agent': 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 5.0) AppleWebkit/537.36 (KHTML, like Gecko) SamsungBrowser/2.2 Chrome/63.0.3239.111 TV Safari/537.36'
     }
 
     if os.path.exists(cookie_path):
