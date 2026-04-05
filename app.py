@@ -8,13 +8,18 @@ import threading
 
 app = Flask(__name__)
 
+import platform
+
 # Folder to store finished downloads
 DOWNLOAD_FOLDER = os.path.join(os.getcwd(), 'downloads')
 if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
 
-# Explicit path to FFmpeg
-FFMPEG_PATH = r'C:\Users\praka\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1-full_build\bin'
+# Dynamic path to FFmpeg: use local Windows path if available, otherwise assume system path
+if platform.system() == "Windows":
+    FFMPEG_PATH = r'C:\Users\praka\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1-full_build\bin'
+else:
+    FFMPEG_PATH = None # On Linux/Render, it will be in the system PATH automatically
 
 # Dictionary to store progress: { download_id: progress_string }
 progress_data = {}
@@ -128,4 +133,7 @@ def get_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000, threaded=True)
+    # Get port from environment variable for Render, default to 5000
+    port = int(os.environ.get('PORT', 5000))
+    # MUST use host='0.0.0.0' for deployment
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
