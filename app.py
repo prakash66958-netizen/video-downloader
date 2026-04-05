@@ -41,14 +41,15 @@ def get_info():
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
+        'format': 'best',
         # The absolute "Last Ditch" configuration to bypass data-center blocks
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios'],
+                'player_client': ['android', 'ios', 'web_creator'],
                 'player_skip': ['webpage', 'configs']
             }
         },
-        'user_agent': 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)'
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     }
     if os.path.exists(cookie_path):
         ydl_opts['cookiefile'] = cookie_path
@@ -123,11 +124,11 @@ def download_video():
         # The absolute "Last Ditch" configuration for downloads
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios'],
+                'player_client': ['android', 'ios', 'web_creator'],
                 'player_skip': ['webpage', 'configs']
             }
         },
-        'user_agent': 'com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X; en_US)'
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     }
 
     if os.path.exists(cookie_path):
@@ -140,7 +141,11 @@ def download_video():
         bitrate = mode.split('_')[1] if '_' in mode else '192'
         ydl_opts.update({'format': 'bestaudio/best', 'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': bitrate}]})
     else:
-        ydl_opts.update({'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]', 'merge_output_format': 'mp4', 'postprocessor_args': ['-c:v', 'copy', '-c:a', 'aac']})
+        # Ultra-safe format string that works even without FFmpeg
+        ydl_opts.update({
+            'format': 'best[height<=1080]/best',
+            'merge_output_format': 'mp4'
+        })
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
